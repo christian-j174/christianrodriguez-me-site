@@ -1,0 +1,14 @@
+Full name: Christian J. Rodriguez Nazario
+Brand/handle (logo text, e.g. johndoe): CJRN
+Main domain (e.g. johndoe.com): = undefided
+Tagline (one line under your name): Visionary on progress
+Bio paragraphs (2-3 short paragraphs):
+Social links (GitHub, LinkedIn, X, Bluesky, email, and any others): https://github.com/christian-j174, https://www.linkedin.com/in/christian-jrn/
+Experience entries (for each: org, role, URL, date range, status active|inactive|incoming, description):
+Projects (for each: name, description, open-source yes/no, link type+URL, tech icons you want shown):
+Keep or remove “Gems” page? If keep, share categories + items:
+Keep or remove “Blog” page?
+Analytics:
+enabled yes/no, script URL, domain
+Footer text (default is © YEAR brand):
+Do you want me to delete the CryptoTracker legal pages? yes/no

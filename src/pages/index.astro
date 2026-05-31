@@ -1,0 +1,119 @@
+---
+import Badge from '@/components/Badge.astro';
+import ContentHeader from '@/components/ContentHeader.astro';
+import ExperienceAccordion from '@/components/ExperienceAccordion.astro';
+import ExternalLinkIcon from '@/components/icons/ExternalLinkIcon.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { experience, projects, socials } from '@/lib/data';
+import { homeConfig, siteConfig } from '@/lib/site';
+import { Image } from 'astro:assets';
+---
+
+<BaseLayout title={siteConfig.ownerName}>
+  <ContentHeader title={siteConfig.ownerName} description={siteConfig.tagline}>
+    <div class="mb-2 grid gap-2 normal-case tracking-tight text-neutral-400">
+      {
+        homeConfig.bioParagraphs.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))
+      }
+    </div>
+    <div class="flex gap-4">
+      {
+        socials.map((social) => (
+          <a href={social.href} target="_blank">
+            <social.icon class="size-5 transition-opacity hover:opacity-75" />
+          </a>
+        ))
+      }
+    </div>
+  </ContentHeader>
+  <section class="pb-12">
+    <h2 class="mb-2 text-xl font-medium tracking-tight">Experience</h2>
+    {
+      experience.length > 0 ? (
+        <ul
+          class="divide-y divide-dashed divide-neutral-700/70 border-t border-dashed border-neutral-700/70 normal-case"
+        >
+          {experience.map((experience) => <ExperienceAccordion {experience} />)}
+        </ul>
+      ) : (
+        <div class="rounded-lg border border-dashed border-neutral-700/70 p-4 normal-case text-sm text-neutral-400">
+          Experience entries coming soon.
+        </div>
+      )
+    }
+  </section>
+  <section>
+    <div class="mb-2 flex items-center justify-between">
+      <h2 class="text-xl font-medium tracking-tight">Projects</h2>
+      <a
+        class="group text-sm normal-case text-neutral-400 transition-colors hover:text-neutral-300"
+        href={homeConfig.projectsMoreUrl}
+        target="_blank"
+      >
+        View more on GitHub
+        <span
+          class="inline-block translate-x-0 transition-transform duration-200 ease-in-out group-hover:translate-x-0.5"
+          aria-hidden="true"
+        >
+          &rarr;
+        </span>
+      </a>
+    </div>
+    <div class="grid grid-cols-1 gap-4 normal-case sm:grid-cols-2">
+      {
+        projects.map((project, i) => (
+          <div class="relative grid gap-2 rounded-lg bg-neutral-800/80 p-2 transition-opacity hover:opacity-80">
+            <Image
+              class="aspect-[40/21] w-full rounded-lg object-cover"
+              alt={`${project.name} project cover`}
+              loading={i < 4 ? 'eager' : 'lazy'}
+              src={project.cover}
+              densities={[1.5]}
+              draggable="false"
+              height={192}
+            />
+            <div class="flex flex-col gap-0.5 tracking-tight">
+              <div class="flex items-center justify-between">
+                <div class="flex gap-1.5">
+                  <h3 class="font-medium leading-4">{project.name}</h3>
+                  {project.openSource && (
+                    <Badge class="bg-white/10 px-1.5 py-1 text-[0.6rem] leading-none text-neutral-300">
+                      OSS
+                    </Badge>
+                  )}
+                  {project.status && (
+                    <Badge class="bg-blue-500/20 px-1.5 py-1 text-[0.6rem] leading-none text-blue-200">
+                      {project.status}
+                    </Badge>
+                  )}
+                </div>
+                <div class="flex items-center gap-1.5">
+                  {project.icons.map((Icon) => (
+                    <Icon class="size-4 text-neutral-400" />
+                  ))}
+                </div>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <p class="text-sm/4 text-neutral-400">{project.description}</p>
+                {project.link ? (
+                  <a
+                    class="flex items-center gap-1 text-xs text-neutral-500 after:absolute after:inset-0"
+                    href={project.link.href}
+                    target="_blank"
+                  >
+                    {project.link.type}
+                    <ExternalLinkIcon class="size-3 opacity-80" />
+                  </a>
+                ) : (
+                  <span class="text-xs text-neutral-600">Private</span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

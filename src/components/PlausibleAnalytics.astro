@@ -1,0 +1,13 @@
+---
+import { siteConfig } from '@/lib/site';
+---
+
+{
+  siteConfig.analytics.scriptSrc && siteConfig.analytics.domain && (
+    <script
+      src={siteConfig.analytics.scriptSrc}
+      data-domain={siteConfig.analytics.domain}
+      is:inline
+      defer></script>
+  )
+}

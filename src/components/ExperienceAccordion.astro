@@ -1,0 +1,71 @@
+---
+import type { Experience } from '@/lib/types';
+import ChevronDownIcon from '@lucide/astro/icons/chevron-down';
+import { Image } from 'astro:assets';
+
+interface Props {
+  experience: Experience;
+}
+
+const { organization, title, href, date, status, logo, description } = Astro.props.experience;
+---
+
+<li class="group" aria-expanded="false">
+  <button
+    onclick="this.parentElement.setAttribute('aria-expanded', this.parentElement.getAttribute('aria-expanded') === 'true' ? 'false' : 'true')"
+    class="flex w-full touch-manipulation flex-col py-2 sm:flex-row sm:items-center sm:justify-between sm:transition-opacity sm:hover:opacity-80"
+    type="button"
+  >
+    <div class="flex gap-2">
+      <a {href} aria-label={`View ${organization} website`} target="_blank">
+        <Image
+          class:list={['size-8 object-contain', logo.rounded && 'rounded']}
+          densities={[2]}
+          src={logo.data}
+          loading="eager"
+          height={32}
+          alt=""
+        />
+      </a>
+      <div class="flex flex-col text-left tracking-tight sm:flex-row sm:items-center sm:gap-2">
+        <h3 class="text-[0.9rem] font-medium leading-none">
+          {organization}
+        </h3>
+        <p class="text-sm text-neutral-400 supports-[-moz-appearance:none]:pb-[0.01px]">
+          {title}
+        </p>
+      </div>
+    </div>
+    <div
+      class="ml-10 flex items-center text-xs tracking-tight text-neutral-400 sm:ml-0 sm:font-mono"
+    >
+      <span
+        class:list={[
+          'ml-[0.0625rem] mr-1.5 block size-1.5 rounded-full sm:mr-2',
+          {
+            'animate-pulse bg-purple-500': status === 'incoming',
+            'animate-pulse bg-emerald-500': status === 'active',
+            'bg-neutral-700': status === 'inactive'
+          }
+        ]}></span>
+      {date}
+      <ChevronDownIcon
+        class="ml-0.5 size-4 opacity-90 transition-transform group-aria-expanded:rotate-180 sm:ml-1"
+      />
+    </div>
+  </button>
+
+  <div
+    class="grid grid-rows-[0fr] transition-all duration-200 ease-in-out group-aria-expanded:grid-rows-[1fr]"
+  >
+    <div class="overflow-hidden">
+      <div
+        class="overflow-hidden p-4 pl-10 pt-0 text-sm text-neutral-400 opacity-0 transition-opacity duration-300 group-aria-expanded:opacity-100"
+      >
+        <p class="whitespace-pre-line">
+          {description}
+        </p>
+      </div>
+    </div>
+  </div>
+</li>
