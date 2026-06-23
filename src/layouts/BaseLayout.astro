@@ -1,7 +1,7 @@
 ---
-import Globe from '@/components/Globe.astro';
 import PlausibleAnalytics from '@/components/PlausibleAnalytics.astro';
 import SiteHeader from '@/components/SiteHeader.astro';
+import Waveform from '@/components/Waveform.astro';
 import { siteConfig } from '@/lib/site';
 import { ClientRouter } from 'astro:transitions';
 
@@ -37,7 +37,11 @@ const currentYear = new Date().getFullYear();
     <meta property="og:description" content={description} />
 
     <meta property="twitter:card" content="summary_large_image" />
-    {siteConfig.twitterHandle && <meta property="twitter:creator" content={siteConfig.twitterHandle} />}
+    {
+      siteConfig.twitterHandle && (
+        <meta property="twitter:creator" content={siteConfig.twitterHandle} />
+      )
+    }
     <meta property="twitter:url" content={canonical} />
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
@@ -60,18 +64,21 @@ const currentYear = new Date().getFullYear();
     class="relative flex min-h-screen flex-col bg-neutral-950 lowercase text-white antialiased sm:px-0"
   >
     <SiteHeader />
-    <main class="container">
+    <main class="container relative z-10">
       <slot />
     </main>
-    <footer class="py-8 text-center text-xs tracking-tighter text-neutral-400 normal-case">
+    <footer
+      class="relative z-10 py-8 text-center text-xs normal-case tracking-tighter text-neutral-400"
+    >
       <p>
-        &copy; {currentYear} {siteConfig.brand}
+        &copy; {currentYear}
+        {siteConfig.brand}
       </p>
     </footer>
     <div
       class="container pointer-events-none fixed inset-x-0 bottom-0 h-16 w-full bg-neutral-950 to-transparent backdrop-blur-lg [-webkit-mask-image:linear-gradient(to_top,rgba(10,10,10,0.75),transparent)]"
     >
     </div>
-    <Globe />
+    <Waveform />
   </body>
 </html>

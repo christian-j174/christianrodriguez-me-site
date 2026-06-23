@@ -1,0 +1,208 @@
+<canvas
+  class="pointer-events-none fixed inset-x-0 top-12 z-0 h-[620px] w-full opacity-70 sm:top-4 sm:h-[760px]"
+  height="760"
+  width="1440"
+  id="waveform"
+  aria-hidden="true"></canvas>
+
+<script>
+  let animationFrame = 0;
+  let activeCanvas: HTMLCanvasElement | undefined;
+  let cleanupAnimation = () => {};
+
+  const waves = [
+    { amplitude: 0.15, frequency: 1.25, speed: 0.0003, phase: 0.2, opacity: 0.4 },
+    { amplitude: 0.1, frequency: 1.8, speed: -0.00022, phase: 1.7, opacity: 0.28 },
+    { amplitude: 0.065, frequency: 2.75, speed: 0.00016, phase: 3.2, opacity: 0.2 },
+    { amplitude: 0.035, frequency: 4.6, speed: -0.0001, phase: 0.8, opacity: 0.14 }
+  ];
+
+  function drawGrid(context: CanvasRenderingContext2D, width: number, height: number) {
+    const gridSize = Math.max(44, width / 24);
+
+    context.save();
+    context.strokeStyle = 'rgba(148, 163, 184, 0.08)';
+    context.lineWidth = 1;
+
+    for (let x = width % gridSize; x < width; x += gridSize) {
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.lineTo(x, height);
+      context.stroke();
+    }
+
+    for (let y = height % gridSize; y < height; y += gridSize) {
+      context.beginPath();
+      context.moveTo(0, y);
+      context.lineTo(width, y);
+      context.stroke();
+    }
+
+    context.strokeStyle = 'rgba(148, 163, 184, 0.18)';
+    context.setLineDash([8, 12]);
+    context.beginPath();
+    context.moveTo(0, height * 0.5);
+    context.lineTo(width, height * 0.5);
+    context.stroke();
+    context.restore();
+  }
+
+  function drawWave(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    elapsed: number,
+    wave: (typeof waves)[number],
+    reducedMotion: boolean
+  ) {
+    const centerY = height * 0.5;
+    const amplitude = height * wave.amplitude;
+    const motion = reducedMotion ? 0 : elapsed * wave.speed;
+    const step = Math.max(2, width / 500);
+
+    context.beginPath();
+
+    for (let x = -step; x <= width + step; x += step) {
+      const progress = x / width;
+      const edgeFade = Math.sin(Math.min(1, Math.max(0, progress)) * Math.PI);
+      const primary = Math.sin(progress * Math.PI * 2 * wave.frequency + wave.phase + motion);
+      const harmonic = Math.sin(progress * Math.PI * 2 * wave.frequency * 2.15 - motion * 0.7);
+      const modulation = 0.78 + 0.22 * Math.sin(progress * Math.PI * 2 * 0.55 + motion);
+      const y = centerY + (primary * 0.82 + harmonic * 0.18) * amplitude * modulation * edgeFade;
+
+      if (x === -step) {
+        context.moveTo(x, y);
+      } else {
+        context.lineTo(x, y);
+      }
+    }
+
+    context.strokeStyle = `rgba(203, 213, 225, ${wave.opacity})`;
+    context.lineWidth = 1.25;
+    context.stroke();
+  }
+
+  function drawSignalMarkers(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    elapsed: number,
+    reducedMotion: boolean
+  ) {
+    const centerY = height * 0.5;
+    const markerCount = 9;
+    const offset = reducedMotion ? 0 : (elapsed * 0.018) % (width / markerCount);
+
+    context.save();
+    context.fillStyle = 'rgba(203, 213, 225, 0.24)';
+    context.strokeStyle = 'rgba(203, 213, 225, 0.12)';
+
+    for (let index = -1; index <= markerCount; index += 1) {
+      const x = index * (width / markerCount) + offset;
+      const signal =
+        Math.sin((x / width) * Math.PI * 2 * waves[0].frequency + waves[0].phase) *
+        height *
+        waves[0].amplitude *
+        0.82;
+      const y = centerY + signal;
+
+      context.beginPath();
+      context.arc(x, y, 2.2, 0, Math.PI * 2);
+      context.fill();
+
+      context.beginPath();
+      context.moveTo(x, y - 8);
+      context.lineTo(x, y + 8);
+      context.stroke();
+    }
+
+    context.restore();
+  }
+
+  function drawWaveform(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    elapsed: number,
+    reducedMotion: boolean
+  ) {
+    context.clearRect(0, 0, width, height);
+    drawGrid(context, width, height);
+
+    for (const wave of waves) {
+      drawWave(context, width, height, elapsed, wave, reducedMotion);
+    }
+
+    drawSignalMarkers(context, width, height, elapsed, reducedMotion);
+
+    const fade = context.createLinearGradient(0, 0, 0, height);
+    fade.addColorStop(0, 'rgba(10, 10, 10, 1)');
+    fade.addColorStop(0.18, 'rgba(10, 10, 10, 0)');
+    fade.addColorStop(0.76, 'rgba(10, 10, 10, 0)');
+    fade.addColorStop(1, 'rgba(10, 10, 10, 1)');
+    context.fillStyle = fade;
+    context.fillRect(0, 0, width, height);
+  }
+
+  function startAnimation() {
+    cleanupAnimation();
+
+    const canvas = document.getElementById('waveform') as HTMLCanvasElement | null;
+    if (!canvas) return;
+
+    cancelAnimationFrame(animationFrame);
+    activeCanvas = canvas;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+
+    const resize = () => {
+      const bounds = canvas.getBoundingClientRect();
+      canvas.width = Math.round(bounds.width * pixelRatio);
+      canvas.height = Math.round(bounds.height * pixelRatio);
+    };
+
+    const render = (elapsed: number) => {
+      if (activeCanvas !== canvas) return;
+
+      drawWaveform(context, canvas.width, canvas.height, elapsed, reducedMotion);
+      if (!reducedMotion && !document.hidden) {
+        animationFrame = requestAnimationFrame(render);
+      }
+    };
+
+    resize();
+    render(0);
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      render(performance.now());
+    });
+    resizeObserver.observe(canvas);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && activeCanvas === canvas && !reducedMotion) {
+        animationFrame = requestAnimationFrame(render);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    cleanupAnimation = () => {
+      cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+      if (activeCanvas === canvas) {
+        activeCanvas = undefined;
+      }
+    };
+
+    canvas.classList.add('duration-1000', 'animate-in', 'fade-in-0');
+  }
+
+  document.addEventListener('astro:page-load', startAnimation);
+  document.addEventListener('astro:before-swap', () => cleanupAnimation());
+</script>
